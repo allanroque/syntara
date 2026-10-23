@@ -23,7 +23,9 @@ export type WaitNode = { type: 'wait' } & Node<WaitActivity>
 
 export function WaitStepComponent(props: NodeProps<WaitNode>) {
   const metadata = stepMetadata.wait
-  const iconNode = renderStepIcon(metadata.icon, RegistryStepId.LOGIC_WAIT, 'canvas', getStepTypeColor('wait'))
+  const iconColor = getStepTypeColor('wait')
+  const iconNode = renderStepIcon(metadata.icon, RegistryStepId.LOGIC_WAIT, 'canvas', iconColor)
+  const semanticZoomIcon = renderStepIcon(metadata.icon, RegistryStepId.LOGIC_WAIT, 'semanticZoom', iconColor)
   const menuActions = useStepMenuActions({
     nodeId: props.data.id,
     stepCategory: StepMenuCategory.CONTROL_FLOW,
@@ -63,6 +65,8 @@ export function WaitStepComponent(props: NodeProps<WaitNode>) {
         title: semanticZoomActivityTitle(props.data.name, `Untitled ${metadata.label}`),
         typeLabel: metadata.label,
       }}
+      semanticZoomIcon={semanticZoomIcon}
+      semanticZoomMenuActions={menuActions}
     >
       <StandardStepHeader
         icon={iconNode}

@@ -16,6 +16,7 @@ import { StepMenuCategory, useStepMenuActions } from './hooks/useStepMenuActions
 import { renderStepIcon } from './renderStepIcon'
 import { getTaskIconDescriptor } from './stepIconResolver'
 import { stepMetadata, executorMetadata } from './stepMetadata'
+import { getTaskCanvasIcon } from './taskCanvasIcon'
 import { getTaskSemanticLabels } from './taskSemanticLabels'
 
 type AAPJobTemplateConfig = {
@@ -81,14 +82,18 @@ export function TaskStepComponent(props: NodeProps<TaskNode>) {
   const showExecutionBadge =
     (props.data as { metadata?: { __showExecutionBadge?: boolean } }).metadata?.__showExecutionBadge === true
 
+  const iconColor = getStepTypeColor(FlowNodeType.TASK, props.data)
+
   return (
     <SynStep
       className={metadata.className}
       nodeProps={props}
       executionState={executionState}
       showExecutionBadge={showExecutionBadge}
-      topBarColor={getStepTypeColor(FlowNodeType.TASK, props.data)}
+      topBarColor={iconColor}
       semanticZoomSummary={getTaskSemanticLabels(props.data)}
+      semanticZoomIcon={getTaskCanvasIcon(props.data, iconColor, 'semanticZoom')}
+      semanticZoomMenuActions={menuActions}
     >
       <TaskActivityDetails
         data={props.data}

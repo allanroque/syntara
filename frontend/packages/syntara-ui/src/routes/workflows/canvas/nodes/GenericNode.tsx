@@ -27,6 +27,9 @@ export function GenericStepComponent(props: NodeProps<GenericNode>) {
   const displayMessage = (typeof customMessage === 'string' ? customMessage : undefined) ?? 'Select a step type'
 
   const showTitle = !customMessage
+  const iconColor = getStepTypeColor(FlowNodeType.GENERIC)
+  const iconNode = renderStepIcon(RhUiSettingsIcon, FlowNodeType.GENERIC, 'canvas', iconColor)
+  const semanticZoomIcon = renderStepIcon(RhUiSettingsIcon, FlowNodeType.GENERIC, 'semanticZoom', iconColor)
 
   const reverseHandles = typeof metadata?.__reverseHandles === 'boolean' ? metadata.__reverseHandles : undefined
 
@@ -54,12 +57,9 @@ export function GenericStepComponent(props: NodeProps<GenericNode>) {
         title: semanticZoomActivityTitle(props.data.name, displayMessage),
         typeLabel: 'Generic',
       }}
+      semanticZoomIcon={semanticZoomIcon}
     >
-      <StandardStepHeader
-        icon={renderStepIcon(RhUiSettingsIcon, FlowNodeType.GENERIC, 'canvas', getStepTypeColor(FlowNodeType.GENERIC))}
-        title={showTitle ? 'Click to configure' : undefined}
-        expandable={false}
-      />
+      <StandardStepHeader icon={iconNode} title={showTitle ? 'Click to configure' : undefined} expandable={false} />
       <SynStepBody>
         <Flex alignItems={{ default: 'alignItemsCenter' }} justifyContent={{ default: 'justifyContentCenter' }}>
           <FlexItem>

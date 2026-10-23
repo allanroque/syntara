@@ -19,7 +19,9 @@ export type LoopNode = { type: 'loop' } & Node<LoopActivity>
 
 export function LoopStepComponent(props: NodeProps<LoopNode>) {
   const metadata = stepMetadata.loop
-  const iconNode = renderStepIcon(metadata.icon, 'logic-loop', 'canvas', getStepTypeColor('loop'))
+  const iconColor = getStepTypeColor('loop')
+  const iconNode = renderStepIcon(metadata.icon, 'logic-loop', 'canvas', iconColor)
+  const semanticZoomIcon = renderStepIcon(metadata.icon, 'logic-loop', 'semanticZoom', iconColor)
   const menuActions = useStepMenuActions({
     nodeId: props.data.id,
     stepCategory: StepMenuCategory.CONTROL_FLOW,
@@ -54,6 +56,8 @@ export function LoopStepComponent(props: NodeProps<LoopNode>) {
         { id: 'done', ariaLabel: 'Done branch output' },
         { id: 'loop', ariaLabel: 'Loop branch output' },
       ]}
+      semanticZoomIcon={semanticZoomIcon}
+      semanticZoomMenuActions={menuActions}
     >
       <StandardStepHeader
         icon={iconNode}

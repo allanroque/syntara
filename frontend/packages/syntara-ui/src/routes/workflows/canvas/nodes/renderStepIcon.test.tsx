@@ -135,4 +135,21 @@ describe('renderStepIcon', () => {
 
     expect(screen.getByTestId('styled-icon').style.transform).toContain(transform)
   })
+
+  it('uses semanticZoom variant when specified (3xl size)', () => {
+    const view = renderStepIcon(MockIcon, 'test-node', 'semanticZoom')
+    render(<>{view}</>)
+
+    expect(screen.getByTestId('step-icon-wrapper')).toHaveClass('pf-m-3xl')
+  })
+
+  it('uses semantic zoom brand scale aligned with add-step list variant for aap', () => {
+    const { unmount: unmountList } = render(<>{renderStepIcon(MockStyledIcon, RegistryStepId.AAP_EXECUTION, 'list')}</>)
+    expect(screen.getByTestId('styled-icon').style.transform).toContain('scale(1.5)')
+    unmountList()
+
+    render(<>{renderStepIcon(MockStyledIcon, RegistryStepId.AAP_EXECUTION, 'semanticZoom')}</>)
+    expect(screen.getByTestId('step-icon-wrapper')).toHaveClass('pf-m-3xl')
+    expect(screen.getByTestId('styled-icon').style.transform).toContain('scale(1.5)')
+  })
 })

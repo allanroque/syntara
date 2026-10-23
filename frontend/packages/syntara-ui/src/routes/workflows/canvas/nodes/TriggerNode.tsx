@@ -47,7 +47,9 @@ export function TriggerStepComponent(props: NodeProps<TriggerNode>) {
     metadata = stepMetadata.edaTrigger
     iconId = 'trigger-eda'
   }
-  const iconNode = renderStepIcon(metadata.icon, iconId)
+  const iconColor = getStepTypeColor(FlowNodeType.TRIGGER)
+  const iconNode = renderStepIcon(metadata.icon, iconId, 'canvas', iconColor)
+  const semanticZoomIcon = renderStepIcon(metadata.icon, iconId, 'semanticZoom', iconColor)
   // 75px border-radius is a layout constraint (pill shape), not a spacing value — no semantic token applies
   const triggerStyle: CSSProperties = {
     borderTopLeftRadius: '75px',
@@ -101,6 +103,8 @@ export function TriggerStepComponent(props: NodeProps<TriggerNode>) {
         title: semanticZoomActivityTitle(triggerName, `Untitled ${metadata.label}`),
         typeLabel: triggerTypeLabel,
       }}
+      semanticZoomIcon={semanticZoomIcon}
+      semanticZoomMenuActions={menuActions}
     >
       <TriggerStepDetails
         node={props.data}
