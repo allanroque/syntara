@@ -35,16 +35,66 @@ export function mainNavGroup(page: Page, groupName: string): Locator {
     .or(nav.getByRole('link', { name: groupName, exact: true }))
 }
 
-/** Click expand toggle — avoid scrolling `.or()` locators (Playwright can hang). */
-async function clickDockedNavGroupToggle(page: Page, groupName: string): Promise<void> {
+function mainNavGroupListItem(page: Page, groupName: string): Locator {
+  return mainNavigation(page).getByRole('listitem', { name: groupName, exact: true })
+}
+
+function mainNavGroupLink(page: Page, groupName: string): Locator {
+  return mainNavigation(page).getByRole('link', { name: groupName, exact: true })
+}
+
+const NAV_CHILD_LINK_TIMEOUT_MS = 15_000
+const NAV_TOGGLE_TIMEOUT_MS = 5_000
+
+/** Scroll a single stable node into view — never call `scrollIntoViewIfNeeded` on `.or()` locators. */
+async function scrollDockedNavGroupIntoView(page: Page, groupName: string): Promise<void> {
   const nav = mainNavigation(page)
-  await mainNavGroup(page, groupName).scrollIntoViewIfNeeded()
-  const namedButton = nav.getByRole('button', { name: groupName, exact: true })
-  if (await namedButton.isVisible().catch(() => false)) {
-    await namedButton.click()
+  await expect(nav).toBeVisible()
+
+  const listItem = mainNavGroupListItem(page, groupName)
+  if ((await listItem.count()) > 0) {
+    await expect(listItem).toBeVisible()
+    await listItem.scrollIntoViewIfNeeded()
     return
   }
-  await nav.getByRole('listitem', { name: groupName, exact: true }).getByRole('button').click()
+
+  const link = mainNavGroupLink(page, groupName)
+  await expect(link).toBeVisible()
+  await link.scrollIntoViewIfNeeded()
+}
+
+/** @returns whether an expand control was clicked */
+async function tryClickDockedNavGroupToggle(page: Page, groupName: string): Promise<boolean> {
+  await scrollDockedNavGroupIntoView(page, groupName)
+
+  const nav = mainNavigation(page)
+  const listItem = mainNavGroupListItem(page, groupName)
+  if ((await listItem.count()) > 0) {
+    const expandButton = listItem.getByRole('button')
+    try {
+      await expect(expandButton).toBeVisible({ timeout: NAV_TOGGLE_TIMEOUT_MS })
+      await expandButton.click()
+      return true
+    } catch {
+      // NavExpandable may render expanded with no toggle button (see AppDockedNav isExpanded).
+    }
+  }
+
+  const namedButton = nav.getByRole('button', { name: groupName, exact: true })
+  try {
+    await expect(namedButton).toBeVisible({ timeout: NAV_TOGGLE_TIMEOUT_MS })
+    await namedButton.click()
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function clickDockedNavGroupToggle(page: Page, groupName: string): Promise<void> {
+  const clicked = await tryClickDockedNavGroupToggle(page, groupName)
+  if (!clicked) {
+    throw new Error(`No expand toggle found for docked nav group "${groupName}"`)
+  }
 }
 
 /**
@@ -57,12 +107,19 @@ export async function expandDockedNavGroup(page: Page, groupName: string, probeC
   const nav = mainNavigation(page)
   const childLink = nav.getByRole('link', { name: probeChildName, exact: true })
 
-  if (await childLink.isVisible().catch(() => false)) {
+  try {
+    await expect(childLink).toBeVisible({ timeout: NAV_CHILD_LINK_TIMEOUT_MS })
     return
+  } catch {
+    // Child not visible yet — try toggle, or group may already be expanded without a toggle.
   }
 
-  await clickDockedNavGroupToggle(page, groupName)
-  await expect(childLink).toBeVisible()
+  const toggled = await tryClickDockedNavGroupToggle(page, groupName)
+  if (!toggled) {
+    await scrollDockedNavGroupIntoView(page, groupName)
+  }
+
+  await expect(childLink).toBeVisible({ timeout: NAV_CHILD_LINK_TIMEOUT_MS })
 }
 
 /** Assert child route links are visible under an expanded group. */
@@ -86,6 +143,7 @@ export async function expectDockedNavGroupChildLinks(
 export async function navigateViaDockedNavGroup(page: Page, groupName: string, childLinkName: string): Promise<void> {
   await expandDockedNavGroup(page, groupName, childLinkName)
   const link = mainNavigation(page).getByRole('link', { name: childLinkName, exact: true })
+  await expect(link).toBeVisible()
   await link.scrollIntoViewIfNeeded()
   await link.click()
 }
